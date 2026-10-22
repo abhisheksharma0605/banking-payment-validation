@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="Payment integrity">
+    <rect width="1200" height="300" fill="#101c29"/><rect x="48" y="48" width="48" height="4" fill="#68dbc1"/>
+    <text x="48" y="89" fill="#68dbc1" font-family="Arial,sans-serif" font-size="15" letter-spacing="3">BANKING PRACTICE LAB / 01</text>
+    <text x="48" y="163" fill="#f3f5f7" font-family="Georgia,serif" font-size="48">Payment integrity</text>
+    <text x="48" y="211" fill="#c0ccd8" font-family="Arial,sans-serif" font-size="17" letter-spacing="2">API VALIDATION / SQL RECONCILIATION / UAT</text>
+    <text x="48" y="266" fill="#a4b7ca" font-family="Arial,sans-serif" font-size="14">Independent learning project · Synthetic data · AI-assisted</text></svg>

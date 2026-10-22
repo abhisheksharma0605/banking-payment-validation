@@ -1,0 +1,12 @@
+test_concurrent_retries_create_one_payment (test_api.PaymentTests.test_concurrent_retries_create_one_payment) ... ok
+test_conflicting_payload_rejected (test_api.PaymentTests.test_conflicting_payload_rejected) ... ok
+test_exact_available_balance_is_allowed (test_api.PaymentTests.test_exact_available_balance_is_allowed) ... ok
+test_invalid_requests_leave_no_posting (test_api.PaymentTests.test_invalid_requests_leave_no_posting) ... ok
+test_missing_key_and_malformed_json (test_api.PaymentTests.test_missing_key_and_malformed_json) ... ok
+test_reconciliation_detects_a_seeded_imbalance (test_api.PaymentTests.test_reconciliation_detects_a_seeded_imbalance) ... ok
+test_success_and_replay_post_only_once (test_api.PaymentTests.test_success_and_replay_post_only_once) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 4.802s
+
+OK

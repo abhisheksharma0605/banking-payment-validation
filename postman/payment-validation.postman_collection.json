@@ -1,0 +1,377 @@
+{
+  "info": {
+    "name": "Banking payment validation \u2014 synthetic practice",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8765"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Read starting balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/accounts/A100"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"requestKey\", pm.variables.replaceIn(\"{{$guid}}\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.collectionVariables.set(\"startingBalance\", data.balance_cents);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Create transfer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 1250, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "const data = pm.response.json();",
+              "pm.test(\"Posted\", () => pm.expect(data.status).to.eql(\"posted\"));",
+              "pm.collectionVariables.set(\"paymentId\", data.payment_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Retry same instruction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 1250, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.test(\"Same payment\", () => pm.expect(data.payment_id).to.eql(pm.collectionVariables.get(\"paymentId\")));",
+              "pm.test(\"Replay\", () => pm.expect(data.replayed).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Reject changed amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 1300, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "const data = pm.response.json();",
+              "pm.test(\"Conflict\", () => pm.expect(data.error).to.eql(\"idempotency_conflict\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Confirm one debit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/accounts/A100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.test(\"One debit\", () => pm.expect(data.balance_cents).to.eql(Number(pm.collectionVariables.get(\"startingBalance\"))-1250));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Inspect stored payment",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/payments/{{paymentId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.test(\"Amount\", () => pm.expect(data.amount_cents).to.eql(1250));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Zero amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}-07"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 0, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "const data = pm.response.json();",
+              "pm.test(\"Rejection\", () => pm.expect(data.error).to.eql(\"invalid_fields\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Insufficient funds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}-08"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 1000000, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+              "const data = pm.response.json();",
+              "pm.test(\"Rejection\", () => pm.expect(data.error).to.eql(\"insufficient_funds\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Blocked account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}-09"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A300\", \"amount_cents\": 1250, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));",
+              "const data = pm.response.json();",
+              "pm.test(\"Rejection\", () => pm.expect(data.error).to.eql(\"account_blocked\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Missing account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{requestKey}}-10"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"UNKNOWN\", \"amount_cents\": 1250, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+              "const data = pm.response.json();",
+              "pm.test(\"Rejection\", () => pm.expect(data.error).to.eql(\"account_not_found\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Missing request key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"source_id\": \"A100\", \"destination_id\": \"A200\", \"amount_cents\": 1250, \"currency\": \"USD\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "const data = pm.response.json();",
+              "pm.test(\"Key required\", () => pm.expect(data.error).to.eql(\"invalid_idempotency_key\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Verify final balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/accounts/A100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.test(\"No rejected debit\", () => pm.expect(data.balance_cents).to.eql(Number(pm.collectionVariables.get(\"startingBalance\"))-1250));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

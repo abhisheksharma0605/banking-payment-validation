@@ -1,0 +1,175 @@
+[
+  {
+    "name": "01 Read starting balance",
+    "code": 200,
+    "body": {
+      "id": "A100",
+      "currency": "USD",
+      "status": "active",
+      "balance_cents": 50000
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000
+    }
+  },
+  {
+    "name": "02 Create transfer",
+    "code": 201,
+    "body": {
+      "payment_id": "PAY-084449e999b240c8",
+      "status": "posted",
+      "replayed": false
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "03 Retry same instruction",
+    "code": 200,
+    "body": {
+      "payment_id": "PAY-084449e999b240c8",
+      "status": "posted",
+      "replayed": true
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "04 Reject changed amount",
+    "code": 409,
+    "body": {
+      "error": "idempotency_conflict"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "05 Confirm one debit",
+    "code": 200,
+    "body": {
+      "id": "A100",
+      "currency": "USD",
+      "status": "active",
+      "balance_cents": 48750
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "06 Inspect stored payment",
+    "code": 200,
+    "body": {
+      "id": "PAY-084449e999b240c8",
+      "source_id": "A100",
+      "destination_id": "A200",
+      "amount_cents": 1250,
+      "currency": "USD",
+      "status": "posted"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "07 Zero amount",
+    "code": 400,
+    "body": {
+      "error": "invalid_fields"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "08 Insufficient funds",
+    "code": 422,
+    "body": {
+      "error": "insufficient_funds"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "09 Blocked account",
+    "code": 422,
+    "body": {
+      "error": "account_blocked"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "10 Missing account",
+    "code": 404,
+    "body": {
+      "error": "account_not_found"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "11 Missing request key",
+    "code": 400,
+    "body": {
+      "error": "invalid_idempotency_key"
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  },
+  {
+    "name": "12 Verify final balance",
+    "code": 200,
+    "body": {
+      "id": "A100",
+      "currency": "USD",
+      "status": "active",
+      "balance_cents": 48750
+    },
+    "variables": {
+      "baseUrl": "http://127.0.0.1:59759",
+      "requestKey": "evidence-001",
+      "startingBalance": 50000,
+      "paymentId": "PAY-084449e999b240c8"
+    }
+  }
+]

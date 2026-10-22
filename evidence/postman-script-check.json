@@ -1,0 +1,4 @@
+{
+  "assertions_passed": 24,
+  "scope": "JavaScript harness against recorded HTTP responses; not Postman UI"
+}

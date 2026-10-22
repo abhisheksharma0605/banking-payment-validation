@@ -1,0 +1,5 @@
+id,currency,status,opening_cents,balance_cents
+A100,USD,active,50000,48750
+A200,USD,active,10000,11250
+A300,USD,blocked,25000,25000
+A400,CAD,active,40000,40000
